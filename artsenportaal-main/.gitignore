@@ -1,0 +1,91 @@
+# OS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+.Spotlight-V100
+.Trashes
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE/editor files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*.swn
+.tsbuildinfo
+.eslintcache
+
+# Build & dependency folders
+node_modules/
+dist/
+build/
+.cache/
+lib-cov
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Package manager artifacts
+.pnp*
+.yarn/*
+!.yarn/cache
+!.yarn/unplugged
+!.yarn/patches
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Misc file types
+*.pid
+*.seed
+*.dat
+*.sql
+*.sqlite
+*.sqlite3
+*.7z
+*.zip
+*.dmg
+*.iso
+*.jar
+*.exe
+*.dll
+*.so
+*.class
+*.com
+*.o
+*.out
+*.msi
+*.msm
+*.msp
+*#
+
+# Strapi-specific
+.strapi
+.strapi-updater.json
+.strapi-cloud.json
+license.txt
+exports
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Storybook logs
+*storybook.log
+storybook-static/

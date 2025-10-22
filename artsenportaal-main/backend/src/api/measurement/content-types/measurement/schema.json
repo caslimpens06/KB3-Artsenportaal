@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "measurements",
+  "info": {
+    "singularName": "measurement",
+    "pluralName": "measurements",
+    "displayName": "Measurement",
+    "description": "Measurements for lab results"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "measurementId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "dateTime": {
+      "type": "datetime",
+      "required": true
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    },
+    "lab_result": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::lab-result.lab-result",
+      "inversedBy": "measurements"
+    }
+  }
+}

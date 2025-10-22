@@ -1,0 +1,119 @@
+{
+  "name": "test-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@babel/plugin-transform-class-properties": "^7.24.6",
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.24.6",
+    "@babel/plugin-transform-numeric-separator": "^7.24.6",
+    "@babel/plugin-transform-optional-chaining": "^7.24.6",
+    "@babel/plugin-transform-private-methods": "^7.24.6",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@jridgewell/sourcemap-codec": "^1.4.15",
+    "@mui/icons-material": "^5.14.6",
+    "@mui/material": "^5.14.6",
+    "@mui/x-date-pickers": "^5.0.12",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@testing-library/react": "^15.0.6",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/axios": "^0.14.4",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.97",
+    "@types/react": "^18.3.3",
+    "@types/react-big-calendar": "^1.16.0",
+    "@types/react-dom": "^18.3.0",
+    "axios": "^1.9.0",
+    "better-sqlite3": "^11.9.1",
+    "d3": "^7.9.0",
+    "date-fns": "^2.30.0",
+    "react": "^18.3.1",
+    "react-app": "^1.1.2",
+    "react-big-calendar": "^1.8.2",
+    "react-colorful": "^5.6.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.2.1",
+    "react-modal": "^3.16.1",
+    "react-router-dom": "^6.24.0",
+    "react-scripts": "^5.0.1",
+    "recharts": "^2.15.3",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "coverage": "react-scripts test --coverage --watchAll=false",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test:cucumber": "cucumber-js -p default"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest",
+      "plugin:storybook/recommended"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "jest": {
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "coveragePathIgnorePatterns": [
+      "src/react-app-env.d.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!src/index.tsx",
+      "!src/reportWebVitals.ts",
+      "!src/abstracts/**",
+      "!src/pages/notfoundpage.tsx",
+      "!src/models/**",
+      "!src/scripts/**",
+      "!src/pages/calenderpage.tsx"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.14.5",
+    "@chromatic-com/storybook": "^3.2.2",
+    "@cucumber/cucumber": "^11.0.1",
+    "@storybook/addon-essentials": "^8.4.2",
+    "@storybook/addon-interactions": "^8.4.2",
+    "@storybook/addon-onboarding": "^8.4.2",
+    "@storybook/blocks": "^8.4.2",
+    "@storybook/preset-create-react-app": "^8.4.2",
+    "@storybook/react": "^8.4.2",
+    "@storybook/react-webpack5": "^8.4.2",
+    "@storybook/test": "^8.4.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/d3": "^7.4.3",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-plugin-storybook": "^0.11.0",
+    "prettier": "3.2.5",
+    "prop-types": "^15.8.1",
+    "storybook": "^8.4.2",
+    "tailwindcss": "^3.4.15",
+    "ts-node": "^10.9.1",
+    "webpack": "^5.96.1"
+  }
+}

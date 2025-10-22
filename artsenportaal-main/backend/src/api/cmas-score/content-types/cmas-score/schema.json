@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cmas_scores",
+  "info": {
+    "singularName": "cmas-score",
+    "pluralName": "cmas-scores",
+    "displayName": "CMAS Score",
+    "description": "Childhood Myositis Assessment Scale scores"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "score": {
+      "type": "float",
+      "required": true
+    },
+    "category": {
+      "type": "string",
+      "required": true
+    },
+    "patient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::patient.patient",
+      "inversedBy": "cmas_scores"
+    }
+  }
+}

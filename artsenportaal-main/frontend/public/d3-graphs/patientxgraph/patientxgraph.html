@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JDM Data patient x</title>
+    <style>
+        /* Add container styling */
+        #chart-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+    
+        rect {
+          pointer-events: all;
+          fill-opacity: 0;
+          stroke-opacity: 0;
+          z-index: 1;
+        }
+    
+        .tooltip {
+        position: absolute;
+        padding: 10px;
+        background-color: steelblue;
+        color: white;
+        border: 1px solid white;
+        border-radius: 10px;
+        display: none;
+        opacity: .75;
+      }
+    
+       
+      </style>
+
+</head>
+<body>
+    <div id="chart-container">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://unpkg.com/d3-simple-slider"></script>
+        <script src="labscript.js"></script>
+    </div>
+</body>
+</html>

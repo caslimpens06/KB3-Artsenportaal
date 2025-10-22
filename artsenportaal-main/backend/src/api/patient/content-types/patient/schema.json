@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "patients",
+  "info": {
+    "singularName": "patient",
+    "pluralName": "patients",
+    "displayName": "Patient",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "patientId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "cmas_scores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::cmas-score.cmas-score",
+      "mappedBy": "patient"
+    },
+    "lab_results": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lab-result.lab-result",
+      "mappedBy": "patient"
+    }
+  }
+}

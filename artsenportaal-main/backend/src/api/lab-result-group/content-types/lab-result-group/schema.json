@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lab_result_groups",
+  "info": {
+    "singularName": "lab-result-group",
+    "pluralName": "lab-result-groups",
+    "displayName": "LabResultGroup"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "groupName": {
+      "type": "string",
+      "required": true
+    },
+    "groupId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "lab_results": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lab-result.lab-result",
+      "mappedBy": "lab_result_group"
+    }
+  }
+}

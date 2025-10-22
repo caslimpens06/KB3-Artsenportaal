@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lab_results",
+  "info": {
+    "singularName": "lab-result",
+    "pluralName": "lab-results",
+    "displayName": "LabResult"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "resultName": {
+      "type": "string",
+      "required": true
+    },
+    "labResultId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "value": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "patient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::patient.patient",
+      "inversedBy": "lab_results"
+    },
+    "lab_result_group": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::lab-result-group.lab-result-group",
+      "inversedBy": "lab_results"
+    },
+    "measurements": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::measurement.measurement",
+      "mappedBy": "lab_result"
+    }
+  }
+}
