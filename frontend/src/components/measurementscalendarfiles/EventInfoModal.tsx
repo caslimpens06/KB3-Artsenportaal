@@ -18,11 +18,6 @@ const EventInfoModal = ({ open, handleClose, onDeleteEvent, currentEvent, onView
         handleClose()
     }
 
-    const handleViewDetails = () => {
-        navigate('/measurementspage')
-        onClose()
-    }
-
     const renderRow = (label: string, value: string) => (
         <Box display="flex" justifyContent="space-between" mt={2} mb={1}>
             <Typography sx={{ fontWeight: 500, fontSize: 16, color: "text.primary" }}>{label}</Typography>
@@ -47,9 +42,6 @@ const EventInfoModal = ({ open, handleClose, onDeleteEvent, currentEvent, onView
                         )}
                         <Divider sx={{ mt: 2, mb: 2 }} />
                         <Box display="flex" justifyContent="center" mt={1}>
-                            <Button color="info" variant="contained" onClick={handleViewDetails} sx={{ mr: 1 }}>
-                                Meer details
-                            </Button>
                             <Button color="error" variant="contained" onClick={onDeleteEvent}>
                                 Verwijder afspraak
                             </Button>

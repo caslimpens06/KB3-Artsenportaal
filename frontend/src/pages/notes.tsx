@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { notesService, PatientNote } from "../services/notesService";
 
-// Utility function to highlight matching text
 const highlightText = (text: string, searchTerm: string): JSX.Element => {
 	if (!searchTerm.trim()) {
 		return <span>{text}</span>;
@@ -25,7 +24,6 @@ const highlightText = (text: string, searchTerm: string): JSX.Element => {
 	);
 };
 
-// Patient Note List Item Component
 const PatientNoteListItem: React.FC<{ 
 	note: PatientNote; 
 	searchTerm: string; 
@@ -48,7 +46,6 @@ const PatientNoteListItem: React.FC<{
 
 	return (
 		<div className={`${baseClasses} ${matchClasses}`}>
-			{/* Match indicator */}
 			{isMatch && (
 				<div className="flex items-center gap-2 mb-2 text-blue-600 text-sm font-medium">
 					<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -100,7 +97,6 @@ const Notes: React.FC = () => {
 	const [sortField, setSortField] = useState<'title' | 'specialist' | 'patient' | 'date' | null>(null);
 	const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-	// Load patient notes from localStorage
 	useEffect(() => {
 		const loadPatientNotes = () => {
 			const allPatientNotes = notesService.getAllNotes();
@@ -109,12 +105,10 @@ const Notes: React.FC = () => {
 
 		loadPatientNotes();
 
-		// Refresh every 5 seconds to catch new notes
 		const interval = setInterval(loadPatientNotes, 5000);
 		return () => clearInterval(interval);
 	}, []);
 
-	// Check if a note matches the search term
 	const isNoteMatch = (note: PatientNote, term: string): boolean => {
 		if (!term.trim()) return false;
 		const searchLower = term.toLowerCase();
@@ -126,11 +120,9 @@ const Notes: React.FC = () => {
 		);
 	};
 
-	// Filter and sort notes when data changes
 	useEffect(() => {
 		let filtered = [...patientNotes];
 
-		// Apply search filter
 		if (searchTerm.trim()) {
 			const term = searchTerm.toLowerCase();
 			filtered = filtered.filter(note => 
@@ -140,7 +132,6 @@ const Notes: React.FC = () => {
 				note.specialistName.toLowerCase().includes(term)
 			);
 
-			// Sort matching notes to the top when searching
 			filtered = filtered.sort((a, b) => {
 				const aMatches = isNoteMatch(a, searchTerm);
 				const bMatches = isNoteMatch(b, searchTerm);
@@ -151,7 +142,6 @@ const Notes: React.FC = () => {
 			});
 		}
 
-		// Apply sorting
 		if (sortField) {
 			filtered.sort((a, b) => {
 				let aValue: string | Date;
@@ -195,7 +185,6 @@ const Notes: React.FC = () => {
 		setFilteredNotes(filtered);
 	}, [patientNotes, searchTerm, sortField, sortDirection]);
 
-	// Handle sorting
 	const handleSort = (field: 'title' | 'specialist' | 'patient' | 'date') => {
 		if (sortField === field) {
 			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -205,7 +194,6 @@ const Notes: React.FC = () => {
 		}
 	};
 
-	// Get sort arrow icon
 	const getSortIcon = (field: 'title' | 'specialist' | 'patient' | 'date') => {
 		if (sortField !== field) {
 			return "Images/dropdown_arrow.png";
@@ -215,17 +203,13 @@ const Notes: React.FC = () => {
 
 	return (
 		<div className="h-screen overflow-hidden bg-gray-50 flex flex-col">
-			{/* Header */}
 			<div className="p-6 bg-white border-b border-gray-200">
-				<h1 className="text-3xl font-bold text-blue-900">Notities</h1>
-				<hr className="mt-3 h-0.5 border-2 border-blue-800 w-32 bg-blue-800" />
+				<h1 className="text-3xl font-bold text-blue-900">Alle Notities</h1>
 			</div>
 
-			{/* Main Content */}
 			<div className="flex-1 overflow-hidden p-6">
 				<div className="bg-white h-full rounded-xl shadow-sm border border-gray-200 flex flex-col">
 					
-					{/* Search bar */}
 					<div className="p-4 border-b border-gray-200">
 						<div className="relative">
 							<input 
@@ -254,7 +238,6 @@ const Notes: React.FC = () => {
 						</div>
 					</div>
 					
-					{/* Table headers */}
 					<div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
 						<div className="grid grid-cols-4 gap-4">
 							<div className="flex items-center space-x-3">
@@ -284,7 +267,6 @@ const Notes: React.FC = () => {
 						</div>
 					</div>
 
-					{/* List of notes */}
 					<div className="flex-1 overflow-y-auto p-4">
 						<div className="space-y-3">
 							{filteredNotes.length > 0 ? (

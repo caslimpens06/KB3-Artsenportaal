@@ -4,11 +4,11 @@ import axios from 'axios';
 import CmasScoreChart from '../components/CmasScoreChart';
 import MultiLabResultChart from '../components/MultiLabResultChart';
 import MeasurementsCalendar from '../components/measurementscalendar';
-import AddNotePopup from '../components/addnotepopup';
 import { Patient } from '../abstracts/ImportsModels';
 import { notesService } from "../services/notesService";
+import { useMemo } from 'react';
+import PatientNotesModal from '../components/patientnotesmodal'
 
-// Interfaces moved from test-strapi page
 interface CmasScore {
   id: number;
   date: string;
@@ -52,7 +52,6 @@ interface PatientData {
   };
 }
 
-// Enhanced patient interface for the list
 interface PatientListItem {
   id: number;
   name: string;
@@ -82,37 +81,54 @@ interface PatientListItem {
 
 type ViewMode = 'patient-data' | 'appointments';
 
+const createPatientInstance = (data: PatientData): Patient => {
+    const [firstName, ...lastNameParts] = data.attributes.name.split(' ');
+    const lastName = lastNameParts.join(' ') || 'Unknown';
+
+    const patient = new Patient(
+        firstName,
+        lastName,
+        `${data.attributes.patientId || 'unknown'}@example.com`,
+        30,
+        '000-000-0000',
+        'contact@example.com',
+        '000-000-0000',
+        'Unknown',
+        '',
+        []
+    );
+
+    patient.Id = Number(data.attributes.patientId) || data.id;
+    return patient;
+};
+
+
 const PatientPage: React.FC = () => {
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const location = useLocation();
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const [showPatientNotesModal, setShowPatientNotesModal] = useState(false);
   
-  // State for patient list
   const [patients, setPatients] = useState<PatientListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State for selected patient and detailed data
   const [selectedPatient, setSelectedPatient] = useState<PatientData | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('patient-data');
 
-  // State for lab results (moved from test-strapi)
   const [labGroups, setLabGroups] = useState<LabResultGroup[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null); // Default to CMAS (null)
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [selectedResults, setSelectedResults] = useState<LabResult[]>([]);
   
-  // Persistent state for easy comparison across patients
   const [persistentGroupName, setPersistentGroupName] = useState<string | null>(null);
   const [persistentResultNames, setPersistentResultNames] = useState<string[]>([]);
 
-  // Note popup state
   const [showNotePopup, setShowNotePopup] = useState(false);
   const [patientNotes, setPatientNotes] = useState<any[]>([]);
 
-  // Fetch patients list
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        // Simplified API call without complex populate and auth header for initial load
         const response = await fetch('http://localhost:1337/api/patients');
         
         if (!response.ok) {
@@ -126,7 +142,6 @@ const PatientPage: React.FC = () => {
           throw new Error('Invalid data structure received from API');
         }
         
-        // Transform the data to match our interface
         const transformedPatients = data.data.map((patient: any) => ({
           id: patient.id,
           name: patient.name,
@@ -135,7 +150,7 @@ const PatientPage: React.FC = () => {
           createdAt: patient.createdAt,
           updatedAt: patient.updatedAt,
           publishedAt: patient.publishedAt,
-          lab_results: [] // We'll fetch this separately when patient is selected
+          lab_results: []
         }));
         
         setPatients(transformedPatients);
@@ -150,7 +165,6 @@ const PatientPage: React.FC = () => {
     fetchPatients();
   }, []);
 
-  // Fetch detailed patient data when patient is selected
   useEffect(() => {
     const fetchPatientDetails = async () => {
       if (!selectedPatient) return;
@@ -186,10 +200,8 @@ const PatientPage: React.FC = () => {
     };
 
     fetchPatientDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPatient?.id]);
 
-  // Fetch lab groups when a patient is selected (moved from test-strapi)
   useEffect(() => {
     const fetchLabGroups = async () => {
       if (!selectedPatient?.id) return;
@@ -197,7 +209,6 @@ const PatientPage: React.FC = () => {
       try {
         const patientId = selectedPatient.id;
         
-        // First try to fetch lab results for the selected patient
         let response = await axios.get(
           `http://localhost:1337/api/lab-results`,
           {
@@ -215,7 +226,6 @@ const PatientPage: React.FC = () => {
           }
         );
 
-        // If no results found for this patient, fall back to all results
         if (!response.data?.data || response.data.data.length === 0) {
           response = await axios.get(
             `http://localhost:1337/api/lab-results`,
@@ -231,7 +241,6 @@ const PatientPage: React.FC = () => {
         }
 
         if (response.data?.data) {
-          // Group the lab results by their lab_result_group
           const resultsByGroup = new Map();
           
           response.data.data.forEach((result: any) => {
@@ -275,7 +284,6 @@ const PatientPage: React.FC = () => {
 
           setLabGroups(filteredGroups);
           
-          // Restore previous selection if available
           if (persistentGroupName && filteredGroups.length > 0) {
             const matchingGroup = filteredGroups.find(group => group.groupName === persistentGroupName);
             if (matchingGroup) {
@@ -300,10 +308,8 @@ const PatientPage: React.FC = () => {
     };
 
     fetchLabGroups();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPatient?.id, persistentGroupName, persistentResultNames]);
 
-  // Function to clear persistent selection and switch to CMAS
   const switchToCMAS = () => {
     setSelectedGroupId(null);
     setSelectedResults([]);
@@ -311,14 +317,12 @@ const PatientPage: React.FC = () => {
     setPersistentResultNames([]);
   };
 
-  // Clear selected results when group changes
   useEffect(() => {
     if (selectedGroupId !== null) {
       setSelectedResults([]);
     }
   }, [selectedGroupId]);
 
-  // Toggle lab result selection
   const toggleLabResult = (result: LabResult) => {
     const isSelected = selectedResults.some(r => r.id === result.id);
     
@@ -333,52 +337,47 @@ const PatientPage: React.FC = () => {
     }
   };
 
-  const handlePatientClick = useCallback((patientId: number) => {
-    // Instead of navigating to a different page, select the patient in current page
-    const patient = patients.find(p => p.id === patientId);
-    if (patient) {
-      setSelectedPatient({
-        id: patient.id,
-        attributes: {
-          name: patient.name,
-          patientId: patient.patientId || '',
-          cmas_scores: []
-        }
-      });
-      
-      // Reset to CMAS view by default for each patient
-      setSelectedGroupId(null);
-      setSelectedResults([]);
-      
-      // Update URL without page navigation
-      window.history.replaceState(null, '', `/patients?patient=${patientId}`);
-    }
-  }, [patients]);
+    const handlePatientClick = useCallback((patientId: number) => {
+        const patient = patients.find(p => p.id === patientId);
+        if (patient) {
+            setSelectedPatient({
+                id: patient.id,
+                attributes: {
+                    name: patient.name,
+                    patientId: patient.patientId || '',
+                    cmas_scores: []
+                }
+            });
 
-  // Auto-select first patient to show the layout immediately, or preserve from navigation
-  useEffect(() => {
-    if (patients.length > 0 && !selectedPatient) {
-      // Check if there's a patient to preserve from navigation state
-      const preservePatientId = location.state?.preserveSelectedPatient;
-      if (preservePatientId) {
-        const targetPatient = patients.find(p => p.id === preservePatientId);
-        if (targetPatient) {
-          handlePatientClick(targetPatient.id);
-          return;
-        }
-      }
-      
-      // Otherwise, select the first patient by default
-      handlePatientClick(patients[0].id);
-    }
-  }, [patients, selectedPatient, handlePatientClick, location.state]);
+            setSelectedGroupId(null);
+            setSelectedResults([]);
 
-  // Handle navigation state for pre-selecting a patient
+            localStorage.setItem('selectedPatientId', patient.id.toString());
+
+            window.history.replaceState(null, '', `/patients?patient=${patientId}`);
+        }
+    }, [patients]);
+
+
+    useEffect(() => {
+        if (patients.length > 0 && !selectedPatient) {
+            const savedPatientId = localStorage.getItem('selectedPatientId');
+            if (savedPatientId) {
+                const targetPatient = patients.find(p => p.id === Number(savedPatientId));
+                if (targetPatient) {
+                    handlePatientClick(targetPatient.id);
+                    return;
+                }
+            }
+
+            handlePatientClick(patients[0].id);
+        }
+    }, [patients, selectedPatient, handlePatientClick]);
+
   useEffect(() => {
     if (location.state?.fromCalendar && location.state?.patientId) {
       const selectedPatientId = location.state.patientId;
       
-      // Only handle if we have patients loaded
       if (patients.length > 0) {
         const targetPatient = patients.find(p => p.id === selectedPatientId);
         if (targetPatient) {
@@ -388,33 +387,15 @@ const PatientPage: React.FC = () => {
     }
   }, [location.state, patients, handlePatientClick]);
 
-  // Create a mock Patient object for the appointments calendar
-  const createMockPatient = (patientData: PatientData): Patient => {
-    return new Patient(
-      patientData.attributes.name.split(' ')[0] || 'Unknown',
-      patientData.attributes.name.split(' ').slice(1).join(' ') || 'Patient',
-      `${patientData.attributes.patientId}@example.com`,
-      30, // Default age
-      '000-000-0000',
-      'contact@example.com',
-      '000-000-0000',
-      'Unknown'
-    );
-  };
-
-  // Get current group
   const currentGroup = labGroups.find(group => group.id === selectedGroupId);
 
-  // Handle navigation from dashboard
   useEffect(() => {
     if (location.state) {
       const { selectedPatientId, viewMode: incomingViewMode } = location.state as any;
       
       if (selectedPatientId && incomingViewMode) {
-        // Set the view mode first
         setViewMode(incomingViewMode);
         
-        // Find and select the patient when patients list is loaded
         if (patients.length > 0) {
           const targetPatient = patients.find(p => p.id === selectedPatientId);
           if (targetPatient) {
@@ -425,7 +406,6 @@ const PatientPage: React.FC = () => {
     }
   }, [location.state, patients, handlePatientClick]);
 
-  // Note-related functions
   const loadPatientNotes = () => {
     if (selectedPatient?.id) {
       const notes = notesService.getNotesByPatient(selectedPatient.id.toString());
@@ -433,15 +413,19 @@ const PatientPage: React.FC = () => {
     }
   };
 
+    const memoizedPatient = useMemo(() => {
+        if (!selectedPatient) return null;
+        return createPatientInstance(selectedPatient);
+    }, [selectedPatient]);
+
   const handleNoteAdded = () => {
-    loadPatientNotes(); // Refresh notes after adding
+    loadPatientNotes();
   };
 
   const handleAddNoteClick = () => {
     setShowNotePopup(true);
   };
 
-  // Load patient notes when selected patient changes
   useEffect(() => {
     loadPatientNotes();
   }, [selectedPatient]);
@@ -474,103 +458,119 @@ const PatientPage: React.FC = () => {
 
   return (
     <div className="h-screen overflow-hidden bg-gray-50 flex flex-col">
-      {/* Header */}
-      <div className="p-6 bg-white border-b border-gray-200 flex-shrink-0">
-        <h1 className="text-3xl font-bold text-blue-900">Patiëntenoverzicht</h1>
-        <hr className="mt-3 h-0.5 border-2 border-blue-800 w-1/5 max-w-xs bg-blue-800" />
-      </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Pane - Patient List */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <div className="p-4 border-b border-gray-200 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900">Alle patiënten</h2>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors"
-            >
-              🔄 Vernieuwen
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto">
-            {patients.length === 0 ? (
-              <div className="p-4 text-gray-500">Geen patiënten gevonden</div>
-            ) : (
-              <div className="space-y-1">
-                {patients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    onClick={() => handlePatientClick(patient.id)}
-                    className={`p-4 cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                      selectedPatient?.id === patient.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                    }`}
-                  >
-                    <div className="font-medium text-gray-900">{patient.name}</div>
-                    <div className="text-sm text-gray-600">{patient.patientId || 'Geen ID'}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Klik om gegevens te bekijken
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+              <div
+                  className="
+                            group/sidebar
+                            relative
+                            bg-white border-r border-gray-200 flex flex-col
+                            transition-all duration-300 ease-in-out
+                            w-28 hover:w-96
+                          "
+              >
+                  <div className="absolute right-0 top-0 bottom-0 w-px bg-gray-200"></div>
 
-        {/* Right Pane - Patient Details */}
+                  <div className="p-4 border-b border-gray-200 flex-shrink-0 overflow-hidden">
+                      <h2
+                        className="
+                        text-lg font-semibold text-gray-900
+                        opacity-100 group-hover/sidebar:opacity-100
+                        transition-opacity duration-300
+                      "
+                      >
+                          Patiënten
+                      </h2>
+                  </div>
+
+                  <div className="flex-1 p-2 overflow-hidden group-hover/sidebar:overflow-y-auto">
+                      {patients.length === 0 ? (
+                          <div className="text-gray-500 text-center mt-4 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300">
+                              Geen patiënten gevonden
+                          </div>
+                      ) : (
+                          <div className="space-y-2">
+                              {patients.map((patient) => (
+                                  <button
+                                      key={patient.id}
+                                      onClick={() => handlePatientClick(patient.id)}
+                                      className={`
+                                                w-full flex items-center rounded-xl
+                                                transition-all duration-200 overflow-hidden
+                                                ${selectedPatient?.id === patient.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : 'hover:bg-gray-50'}
+                                                px-3 py-2
+                                              `}
+                                  >
+                                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                          {patient.name.charAt(0).toUpperCase()}
+                                      </div>
+
+                                      <div className="ml-3 flex flex-col text-left opacity-0 group-hover/sidebar:opacity-100 overflow-hidden whitespace-nowrap transition-opacity duration-300">
+                                          <div className="font-medium text-gray-900 truncate">{patient.name}</div>
+                                          <div className="text-sm text-gray-600 truncate">{patient.patientId || 'Geen ID'}</div>
+                                          <div className="text-xs text-gray-500 mt-1 truncate">Klik om gegevens te bekijken</div>
+                                      </div>
+                                  </button>
+                              ))}
+                          </div>
+                      )}
+                  </div>
+
+              </div>
+
+
         <div className="flex-1 flex flex-col overflow-hidden">
           {selectedPatient ? (
             <>
-              {/* Patient Header with Action Buttons */}
               <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
                 <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedPatient.attributes.name}</h2>
-                    <p className="text-sm text-gray-600">Patiënt ID: {selectedPatient.attributes.patientId}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setViewMode('patient-data')}
-                      className={`px-4 py-2 rounded-lg border transition-colors ${
-                        viewMode === 'patient-data'
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                      }`}
-                    >
-                      Gegevens
-                    </button>
-                    <button
-                      onClick={() => setViewMode('appointments')}
-                      className={`px-4 py-2 rounded-lg border transition-colors ${
-                        viewMode === 'appointments'
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                      }`}
-                    >
-                      Afspraken
-                    </button>
-                    <button
-                      onClick={handleAddNoteClick}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                      title="Voeg notitie toe"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Notitie ({patientNotes.length})
-                    </button>
-                  </div>
+                    <div className="flex space-x-2">
+                        <button
+                            onClick={() => setViewMode('patient-data')}
+                            className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold shadow-md transition-all duration-200
+                            ${viewMode === 'patient-data'
+                                                                ? 'bg-blue-500 text-white shadow-lg'
+                                                                : 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700'}
+                            `}
+                        >
+
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 0112 15a9 9 0 016.879 2.804M12 12a4 4 0 100-8 4 4 0 000 8z" />
+                            </svg>
+                            Gegevens
+                        </button>
+
+                        <button
+                            onClick={() => setViewMode('appointments')}
+                            className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold shadow-md transition-all duration-200
+                            ${viewMode === 'appointments'
+                                                                ? 'bg-blue-500 text-white shadow-lg'
+                                                                : 'bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700'}
+                            `}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3M3 11h18M5 19h14v-8H5v8z" />
+                            </svg>
+                            Afspraken
+                        </button>
+
+                        <button
+                            onClick={() => setShowPatientNotesModal(true)}
+                            className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all duration-200 font-semibold"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Notities ({patientNotes.length} opgeslagen)
+                        </button>
+                    </div>
                 </div>
               </div>
 
-              {/* Content Area */}
               <div className="flex-1 overflow-hidden">
                 {viewMode === 'patient-data' ? (
                   <div className="flex h-full">
-                    {/* Data Categories Sidebar */}
                     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-                      {/* CMAS Section */}
                       <div className="p-4 border-b border-gray-200 flex-shrink-0">
                         <button
                           onClick={switchToCMAS}
@@ -587,7 +587,6 @@ const PatientPage: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Lab Results Groups */}
                       <div className="flex-1 overflow-y-auto">
                         <div className="p-4">
                           <h3 className="font-medium text-gray-900 mb-3">Lab Resultaten</h3>
@@ -615,7 +614,6 @@ const PatientPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Lab Results Selection */}
                       {currentGroup && (
                         <div className="border-t border-gray-200 p-4 max-h-64 overflow-y-auto flex-shrink-0">
                           <h4 className="font-medium text-gray-900 mb-2">Selecteer Metingen</h4>
@@ -640,10 +638,8 @@ const PatientPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Chart Area */}
                     <div className="flex-1 p-4 overflow-y-auto">
                       {selectedGroupId === null ? (
-                        // CMAS Chart
                         selectedPatient.attributes.cmas_scores && selectedPatient.attributes.cmas_scores.length > 0 ? (
                           <div className="h-full">
                             <CmasScoreChart data={selectedPatient.attributes.cmas_scores} />
@@ -657,7 +653,6 @@ const PatientPage: React.FC = () => {
                           </div>
                         )
                       ) : selectedResults.length > 0 ? (
-                        // Lab Results Chart
                         <div className="h-full">
                           <MultiLabResultChart selectedResults={selectedResults} />
                         </div>
@@ -672,12 +667,13 @@ const PatientPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  // Appointments View
                   <div className="h-full overflow-y-auto">
-                    <MeasurementsCalendar 
-                      patient={createMockPatient(selectedPatient)} 
-                      onViewMeasurements={() => setViewMode('patient-data')}
-                    />
+                    {viewMode === 'appointments' && selectedPatient && memoizedPatient && (
+                        <MeasurementsCalendar
+                            patient={memoizedPatient}
+                            onViewMeasurements={() => setViewMode('patient-data')}
+                        />
+                    )}
                   </div>
                 )}
               </div>
@@ -692,17 +688,15 @@ const PatientPage: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Add Note Popup */}
-      {selectedPatient && (
-        <AddNotePopup
-          isOpen={showNotePopup}
-          onClose={() => setShowNotePopup(false)}
-          patientId={selectedPatient.id.toString()}
-          patientName={selectedPatient.attributes.name}
-          onNoteAdded={handleNoteAdded}
-        />
-      )}
+          {selectedPatient && (
+              <PatientNotesModal
+                  isOpen={showPatientNotesModal}
+                  onClose={() => setShowPatientNotesModal(false)}
+                  patientId={selectedPatient.id.toString()}
+                  patientName={selectedPatient.attributes.name}
+                  onNotesUpdated={loadPatientNotes}
+              />
+          )}
     </div>
   );
 };

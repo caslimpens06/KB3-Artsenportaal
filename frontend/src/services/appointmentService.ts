@@ -22,19 +22,16 @@ export interface AppointmentFormData {
 
 const APPOINTMENTS_KEY = 'appointments';
 
-// Helper function to generate unique IDs
 const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
-// Helper function to get all appointments from localStorage
 const getStoredAppointments = (): Appointment[] => {
   const stored = localStorage.getItem(APPOINTMENTS_KEY);
   if (!stored) return [];
   
   try {
     const appointments = JSON.parse(stored);
-    // Convert date strings back to Date objects
     return appointments.map((apt: any) => ({
       ...apt,
       start: new Date(apt.start),
@@ -47,7 +44,6 @@ const getStoredAppointments = (): Appointment[] => {
   }
 };
 
-// Helper function to save appointments to localStorage
 const saveAppointments = (appointments: Appointment[]): void => {
   try {
     localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
@@ -57,7 +53,6 @@ const saveAppointments = (appointments: Appointment[]): void => {
 };
 
 export const appointmentService = {
-  // Create a new appointment
   createAppointment: (
     patientId: number, 
     patientName: string, 
@@ -86,13 +81,11 @@ export const appointmentService = {
     return newAppointment;
   },
 
-  // Get all appointments for a specific patient
   getAppointmentsByPatient: (patientId: number): Appointment[] => {
     const appointments = getStoredAppointments();
     return appointments.filter(apt => apt.patientId === patientId);
   },
 
-  // Get all upcoming appointments (for dashboard)
   getAllUpcomingAppointments: (): Appointment[] => {
     const appointments = getStoredAppointments();
     const now = new Date();
@@ -102,12 +95,10 @@ export const appointmentService = {
       .sort((a, b) => a.start.getTime() - b.start.getTime());
   },
 
-  // Get all appointments
   getAllAppointments: (): Appointment[] => {
     return getStoredAppointments();
   },
 
-  // Update appointment status
   updateAppointmentStatus: (appointmentId: string, status: 'scheduled' | 'completed' | 'cancelled'): boolean => {
     const appointments = getStoredAppointments();
     const index = appointments.findIndex(apt => apt.id === appointmentId);
@@ -119,7 +110,6 @@ export const appointmentService = {
     return true;
   },
 
-  // Delete appointment
   deleteAppointment: (appointmentId: string): boolean => {
     const appointments = getStoredAppointments();
     const filteredAppointments = appointments.filter(apt => apt.id !== appointmentId);
@@ -130,24 +120,25 @@ export const appointmentService = {
     return true;
   },
 
-  // Get appointments for calendar view (converts to calendar format)
-  getAppointmentsForCalendar: (patientId?: number): any[] => {
-    const appointments = patientId 
-      ? getStoredAppointments().filter(apt => apt.patientId === patientId)
-      : getStoredAppointments();
-    
-    return appointments.map(apt => ({
-      _id: apt.id,
-      title: apt.category,
-      description: apt.description,
-      start: apt.start,
-      end: apt.end,
-      patientId: apt.patientId,
-      patientName: apt.patientName
-    }));
-  },
+    getAppointmentsForCalendar: (patientId?: number): any[] => {
+        const appointments = patientId
+            ? getStoredAppointments().filter(apt => apt.patientId === patientId)
+            : getStoredAppointments();
 
-  // Delete appointments by patient name
+        return appointments.map(apt => ({
+            _id: apt.id,
+            title: apt.category,
+            description: apt.description,
+            start: apt.start,
+            end: apt.end,
+            patientId: apt.patientId,
+            patientName: apt.patientName,
+            categoryId: apt.categoryId,
+            categoryTitle: apt.category
+        }));
+    },
+
+
   deleteAppointmentsByPatientName: (patientName: string): number => {
     const appointments = getStoredAppointments();
     const filteredAppointments = appointments.filter(apt => apt.patientName !== patientName);

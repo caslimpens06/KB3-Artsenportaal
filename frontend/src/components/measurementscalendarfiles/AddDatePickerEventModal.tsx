@@ -1,4 +1,4 @@
-import React, { Dispatch, MouseEvent, SetStateAction, ChangeEvent, useMemo } from "react";
+﻿import React, { Dispatch, MouseEvent, SetStateAction, ChangeEvent, useMemo } from "react";
 import {
     TextField,
     Dialog,
@@ -19,6 +19,7 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePickerEventFormData } from "./EventCalendar";
 import { ICategory } from "../measurementscalendar";
+import { nl } from "date-fns/locale";
 
 interface IProps {
     open: boolean;
@@ -37,7 +38,7 @@ const AddDatePickerEventModal = ({
     onAddEvent,
     todos: categories,
 }: IProps) => {
-    const { description, start, end, todoId } = datePickerEventFormData;
+    const { description, start, end, categoryId } = datePickerEventFormData;
 
     const onClose = () => handleClose();
 
@@ -51,7 +52,7 @@ const AddDatePickerEventModal = ({
     const handleCategoryChange = (e: React.SyntheticEvent, value: ICategory | null) => {
         setDatePickerEventFormData(prev => ({
             ...prev,
-            todoId: value?._id,
+            categoryId: value?._id,
         }));
     };
 
@@ -84,7 +85,7 @@ const AddDatePickerEventModal = ({
         if (!description.trim()) errs.push("Beschrijving is verplicht.");
         if (!start) errs.push("Begindatum is verplicht.");
         if (!end) errs.push("Einddatum is verplicht.");
-        if (!todoId) errs.push("Categorie is verplicht.");
+        if (!categoryId) errs.push("Categorie is verplicht.");
 
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         if (start && start < today) errs.push("Begindatum mag niet in het verleden liggen.");
@@ -92,7 +93,7 @@ const AddDatePickerEventModal = ({
         if (start && end && start > end) errs.push("Begindatum/tijd mag niet na einddatum/tijd liggen.");
 
         return errs;
-    }, [description, start, end, todoId]);
+    }, [description, start, end, categoryId]);
 
     const now = new Date();
     const currentStart = start || new Date(now.getTime() + 30 * 60 * 1000);
@@ -119,7 +120,7 @@ const AddDatePickerEventModal = ({
                         required
                     />
 
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={nl}>
                         <Box display="flex" flexDirection="column" gap={2.5}>
                             <DatePicker
                                 label="Begindatum"
@@ -235,7 +236,7 @@ const AddDatePickerEventModal = ({
                         id="combo-box-demo"
                         options={categories}
                         getOptionLabel={(option) => option.title}
-                        value={categories.find(c => c._id === todoId) || null}
+                        value={categories.find(c => c._id === categoryId) || null}
                         renderInput={(params) => <TextField {...params} label="Categorie" required />}
                         freeSolo={false}
                         disableClearable={false}

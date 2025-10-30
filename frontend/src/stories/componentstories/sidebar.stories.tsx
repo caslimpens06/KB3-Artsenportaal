@@ -2,6 +2,7 @@ import React from "react";
 import Sidebar from "../../components/sidebar";
 import { JSX } from "react/jsx-runtime";
 import { Meta } from "@storybook/react/*";
+import { SidebarProps } from "../../components/sidebar";
 
 export default {
   title: "Components/Sidebar",
@@ -9,7 +10,7 @@ export default {
   tags: ["autodocs"],
 }as Meta;
 
-const Template = (args: JSX.IntrinsicAttributes) => <Sidebar {...args} />;
+const Template = (args: SidebarProps) => <Sidebar {...args} />;
 
 export const Default = {
   render: Template,

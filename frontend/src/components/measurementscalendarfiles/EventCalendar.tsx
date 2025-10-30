@@ -7,26 +7,24 @@ import format from "date-fns/format"
 import parse from "date-fns/parse"
 import startOfWeek from "date-fns/startOfWeek"
 import getDay from "date-fns/getDay"
-import enUS from "date-fns/locale/en-US"
 
 import "react-big-calendar/lib/css/react-big-calendar.css"
 
 import EventInfo from "./EventInfo"
-import AddEventModal from "./AddEventModal"
 import EventInfoModal from "./EventInfoModal"
-import { AddCategoryModal } from "./AddCategoryModal"
-import AddDatePickerEventModal from "./AddDatePickerEventModal"
+
+import nl from "date-fns/locale/nl"
 
 const locales = {
-  "en-US": enUS,
+    "nl-NL": nl,
 }
 
 const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
+    format,
+    parse,
+    startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
+    getDay,
+    locales,
 })
 
 export interface ITodo {
@@ -38,32 +36,32 @@ export interface ITodo {
 export interface IEventInfo extends Event {
   _id: string
   description: string
-  todoId?: string
+    categoryId?: string
+    categoryTitle?: string
 }
 
 export interface EventFormData {
-  description: string
-  todoId?: string
+    description: string
+    categoryId?: string
 }
-
 export interface DatePickerEventFormData {
-  description: string
-  todoId?: string
-  allDay: boolean
-  start?: Date
-  end?: Date
+    description: string
+    categoryId?: string
+    allDay: boolean
+    start?: Date
+    end?: Date
 }
 
 export const generateId = () => (Math.floor(Math.random() * 10000) + 1).toString()
 
 const initialEventFormState: EventFormData = {
   description: "",
-  todoId: undefined,
+  categoryId: undefined,
 }
 
 const initialDatePickerEventFormData: DatePickerEventFormData = {
   description: "",
-  todoId: undefined,
+  categoryId: undefined,
   allDay: false,
   start: undefined,
   end: undefined,
@@ -93,60 +91,6 @@ const EventCalendar = () => {
   const handleSelectEvent = (event: IEventInfo) => {
     setCurrentEvent(event)
     setEventInfoModal(true)
-  }
-
-  const handleClose = () => {
-    setEventFormData(initialEventFormState)
-    setOpenSlot(false)
-  }
-
-  const handleDatePickerClose = () => {
-    setDatePickerEventFormData(initialDatePickerEventFormData)
-    setOpenDatepickerModal(false)
-  }
-
-  const onAddEvent = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-
-    const data: IEventInfo = {
-      ...eventFormData,
-      _id: generateId(),
-      start: currentEvent?.start,
-      end: currentEvent?.end,
-    }
-
-    const newEvents = [...events, data]
-
-    setEvents(newEvents)
-    handleClose()
-  }
-
-  const onAddEventFromDatePicker = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-
-    const addHours = (date: Date | undefined, hours: number) => {
-      return date ? date.setHours(date.getHours() + hours) : undefined
-    }
-
-    const setMinToZero = (date: any) => {
-      date.setSeconds(0)
-
-      return date
-    }
-
-    const data: IEventInfo = {
-      ...datePickerEventFormData,
-      _id: generateId(),
-      start: setMinToZero(datePickerEventFormData.start),
-      end: datePickerEventFormData.allDay
-        ? addHours(datePickerEventFormData.start, 12)
-        : setMinToZero(datePickerEventFormData.end),
-    }
-
-    const newEvents = [...events, data]
-
-    setEvents(newEvents)
-    setDatePickerEventFormData(initialDatePickerEventFormData)
   }
 
   const onDeleteEvent = () => {
@@ -180,22 +124,6 @@ const EventCalendar = () => {
               </ButtonGroup>
             </Box>
             <Divider style={{ margin: 10 }} />
-            <AddEventModal
-              open={openSlot}
-              handleClose={handleClose}
-              eventFormData={eventFormData}
-              setEventFormData={setEventFormData}
-              onAddEvent={onAddEvent}
-              todos={todos}
-            />
-            <AddDatePickerEventModal
-              open={openDatepickerModal}
-              handleClose={handleDatePickerClose}
-              datePickerEventFormData={datePickerEventFormData}
-              setDatePickerEventFormData={setDatePickerEventFormData}
-              onAddEvent={onAddEventFromDatePicker}
-              todos={todos}
-            />
             <EventInfoModal
               open={eventInfoModal}
               handleClose={() => setEventInfoModal(false)}
@@ -203,35 +131,30 @@ const EventCalendar = () => {
               currentEvent={currentEvent as IEventInfo} onViewDetails={function (): void {
                 throw new Error("Function not implemented.")
               } }            />
-            <AddCategoryModal
-              open={openTodoModal}
-              handleClose={() => setOpenTodoModal(false)}
-              categories={todos}
-              setCategories={setTodos}
-            />
             <Calendar
-              localizer={localizer}
-              events={events}
-              onSelectEvent={handleSelectEvent}
-              onSelectSlot={handleSelectSlot}
-              selectable
-              startAccessor="start"
-              components={{ event: EventInfo }}
-              endAccessor="end"
-              defaultView="week"
-              eventPropGetter={(event) => {
-                const hasTodo = todos.find((todo) => todo._id === event.todoId)
-                return {
-                  style: {
-                    backgroundColor: hasTodo ? hasTodo.color : "#b64fc8",
-                    borderColor: hasTodo ? hasTodo.color : "#b64fc8",
-                  },
-                }
-              }}
-              style={{
-                height: 900,
-              }}
+                localizer={localizer}
+                culture="nl-NL"
+                events={events}
+                onSelectEvent={handleSelectEvent}
+                onSelectSlot={handleSelectSlot}
+                selectable
+                startAccessor="start"
+                endAccessor="end"
+                defaultView="week"
+                components={{ event: EventInfo }}
+                    eventPropGetter={(event) => {
+                        const category = todos.find(todo => todo._id === event.categoryId)
+                        return {
+                            style: {
+                                backgroundColor: category?.color,
+                                borderColor: category?.color,
+                            },
+                        }
+                    }}
+
+                style={{ height: 900 }}
             />
+
           </CardContent>
         </Card>
       </Container>
