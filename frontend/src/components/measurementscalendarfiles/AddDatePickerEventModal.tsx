@@ -90,7 +90,11 @@ const AddDatePickerEventModal = ({
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         if (start && start < today) errs.push("Begindatum mag niet in het verleden liggen.");
         if (end && end < today) errs.push("Einddatum mag niet in het verleden liggen.");
-        if (start && end && start > end) errs.push("Begindatum/tijd mag niet na einddatum/tijd liggen.");
+        if (start && end) {
+            if (start.getTime() >= end.getTime()) {
+                errs.push("Begindatum/tijd mag niet gelijk of na einddatum/tijd liggen.");
+            }
+        }
 
         return errs;
     }, [description, start, end, categoryId]);
@@ -175,7 +179,7 @@ const AddDatePickerEventModal = ({
                         <Box display="flex" flexDirection="column" gap={1.5} mt={3}>
                             <DatePicker
                                 label="Einddatum"
-                                value={start || null}
+                                value={end || null}
                                 minDate={currentStart || undefined}
                                 onChange={(newValue) =>
                                     setDatePickerEventFormData(prev => ({
